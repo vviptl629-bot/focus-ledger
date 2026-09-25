@@ -107,6 +107,10 @@
   .help-list{font-size:13px;line-height:1.95;color:var(--text)}
   .help-list b{color:var(--accent)}
   .help-note{font-size:12px;color:var(--muted);margin-top:12px;line-height:1.7}
+  .install-note{font-size:13px;line-height:1.7;border-radius:10px;padding:11px 14px;margin-bottom:14px;word-break:break-all}
+  .install-note.ok{background:rgba(14,124,134,.08);color:#0E7C86;border:1px solid rgba(14,124,134,.25)}
+  .install-note.bad{background:rgba(217,105,74,.08);color:var(--danger);border:1px solid rgba(217,105,74,.25)}
+  .install-note.info{background:var(--panel-2);color:var(--muted);border:1px solid var(--border)}
   /* segmented control */
   .seg{display:flex;border:1px solid var(--border);border-radius:10px;overflow:hidden}
   .seg-btn{flex:1;padding:10px 0;background:var(--panel);border:0;color:var(--muted);font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;transition:.12s}
@@ -250,6 +254,7 @@
 <div class="modal" id="installModal" hidden>
   <div class="modal-box">
     <h3>把它装到桌面 / 手机主屏</h3>
+    <div id="installNote" class="install-note info"></div>
     <div class="help-list">
       <div><b>电脑 Chrome / Edge</b>：点地址栏右端的「安装」图标，或右上「⋮」→「安装 番茄钟工作台」。</div>
       <div><b>安卓 Chrome</b>：右上「⋮」→「安装应用 / 添加到主屏幕」。</div>
@@ -557,20 +562,50 @@
       return window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone===true;
     }catch(e){ return false; }
   }
+  function navSupport(){
+    const ua=navigator.userAgent;
+    if(/Edg|Chrome|Chromium|OPR|Opera|Brave/i.test(ua)) return 'chromium';
+    if(/iPhone|iPad|iPod|Macintosh/i.test(ua) && /Safari/i.test(ua) && !/Chrome/i.test(ua)) return 'safari';
+    if(/Firefox/i.test(ua)) return 'firefox';
+    return 'unknown';
+  }
+  function fillInstallNote(){
+    const el=$('installNote'); if(!el) return;
+    if(deferredPrompt){
+      el.className='install-note ok';
+      el.textContent='✓ 检测到当前浏览器支持安装。点本弹窗下方「安装到桌面」即可；或点地址栏右侧的 📥 安装图标。';
+    }else{
+      const s=navSupport(), url='https://vviptl629-bot.github.io/focus-ledger/';
+      if(s==='chromium'){
+        el.className='install-note info';
+        el.textContent='你的浏览器（Chrome / Edge 等）支持安装，但本次会话尚未弹出安装提示。请点地址栏右侧的 📥 安装图标（或 ⋮ → 安装 番茄钟工作台）；若仍不出现，刷新页面或关掉本页重新打开链接再试。';
+      }else if(s==='safari'){
+        el.className='install-note bad';
+        el.textContent='Safari 桌面版不支持把网页装成桌面应用。请在 iPhone 上用 Safari 打开本页 → 底部「分享」→「添加到主屏幕」；或电脑改用 Chrome / Edge。';
+      }else if(s==='firefox'){
+        el.className='install-note bad';
+        el.textContent='Firefox 不支持 PWA 安装到桌面。请用电脑版 Chrome 或 Edge 打开此链接：'+url;
+      }else{
+        el.className='install-note bad';
+        el.textContent='当前浏览器/环境可能不支持 PWA 安装。请用电脑版 Chrome 或 Edge 打开此链接：'+url;
+      }
+    }
+  }
   function paintInstall(){
     const btn=$('installBtn'); if(!btn) return;
     if(isStandalone()){ btn.hidden=true; return; }
     btn.hidden=false;
     const lab=$('installLabel'); if(lab) lab.textContent = deferredPrompt ? '安装到桌面' : '如何安装？';
   }
-  window.addEventListener('beforeinstallprompt',e=>{ e.preventDefault(); deferredPrompt=e; paintInstall(); });
+  window.addEventListener('beforeinstallprompt',e=>{ e.preventDefault(); deferredPrompt=e; paintInstall(); fillInstallNote(); });
   window.addEventListener('appinstalled',()=>{ deferredPrompt=null; const b=$('installBtn'); if(b) b.hidden=true; });
   $('installBtn').onclick=async()=>{
     if(deferredPrompt){
       deferredPrompt.prompt();
       try{ await deferredPrompt.userChoice; }catch(e){}
-      deferredPrompt=null; paintInstall();
+      deferredPrompt=null; paintInstall(); fillInstallNote();
     }else{
+      fillInstallNote();
       $('installModal').hidden=false;
     }
   };
@@ -675,8 +710,8 @@
   saveData(); render(); updateChip(); startAutoPull();
   setInterval(updateChip, 1000);
   if('serviceWorker' in navigator){ navigator.serviceWorker.register('./sw.js').catch(()=>{}); }
-  paintInstall();
-  setTimeout(paintInstall, 1500);
+  paintInstall(); fillInstallNote();
+  setTimeout(()=>{ paintInstall(); fillInstallNote(); }, 1500);
 })();
 </script>
 </body>
