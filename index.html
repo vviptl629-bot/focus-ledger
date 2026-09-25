@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="theme-color" content="#0E7C86">
+<title>番茄钟工作台 · 专注记录</title>
+<link rel="manifest" href="./manifest.webmanifest">
+<link rel="icon" href="./icon.svg" type="image/svg+xml">
+<style>
+  :root{
+    --bg:#EEF1F5; --panel:#FFFFFF; --panel-2:#F4F7F9; --border:#E3E8EE; --text:#1F2A37; --muted:#6B7785;
+    --accent:#0E7C86; /* 深青 */
+    --focus:#0E7C86; --break:#E08A1E; --shadow:0 6px 22px rgba(31,42,55,.08);
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%}
+  body{background:var(--bg);color:var(--text);font-family:"Inter","Segoe UI",-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;
+    -webkit-font-smoothing:antialiased;padding:18px;min-height:100%}
+  .wrap{max-width:1080px;margin:0 auto;display:grid;gap:16px}
+  @media(min-width:860px){.wrap{grid-template-columns:380px 1fr;align-items:start}}
+  /* topbar */
+  .topbar{grid-column:1/-1;display:flex;align-items:center;justify-content:space-between;
+    padding:14px 20px;background:var(--panel);border:1px solid var(--border);border-radius:14px;box-shadow:var(--shadow)}
+  .brand{display:flex;align-items:center;gap:12px}
+  .logo{width:34px;height:34px;border-radius:9px;background:var(--accent);display:flex;align-items:center;justify-content:center;font-weight:800;color:#fff;font-size:15px}
+  .brand h1{font-size:16px;font-weight:700}
+  .brand p{font-size:11px;color:var(--muted);letter-spacing:2px;text-transform:uppercase}
+  .sync-btn{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--muted);background:var(--bg);border:1px solid var(--border);
+    padding:7px 13px;border-radius:999px;cursor:pointer;font-family:inherit;transition:.15s}
+  .sync-btn:hover{border-color:var(--accent);color:var(--accent)}
+  .dot{width:8px;height:8px;border-radius:50%;background:var(--accent);box-shadow:0 0 0 4px rgba(14,124,134,.15)}
+  .dot.off{background:#B6BFCA;box-shadow:none}
+  .dot.err{background:#D9694A;box-shadow:0 0 0 4px rgba(217,105,74,.18)}
+  .dot.busy{background:var(--break);box-shadow:0 0 0 4px rgba(224,138,30,.15)}
+  /* record entry card */
+  .hero{background:var(--panel);border:1px solid var(--border);border-radius:18px;padding:24px 22px;box-shadow:var(--shadow)}
+  .goal{margin-bottom:20px}
+  .goal-top{display:flex;justify-content:space-between;align-items:baseline;font-size:12px;color:var(--muted);margin-bottom:9px;letter-spacing:1px}
+  .goal-top b{color:var(--text);font-size:15px;font-weight:700;font-variant-numeric:tabular-nums}
+  .bar{height:9px;background:var(--panel-2);border:1px solid var(--border);border-radius:999px;overflow:hidden}
+  .bar-fill{height:100%;background:linear-gradient(90deg,var(--accent),#13a3af);border-radius:999px;transition:width .4s ease}
+  .log-btns{display:flex;gap:12px;margin:6px 0 16px}
+  .log-btns .btn{flex:1;padding:16px 0;font-size:15px}
+  .btn{border:1px solid var(--border);background:var(--panel);color:var(--text);font-size:14px;font-weight:600;
+    border-radius:11px;cursor:pointer;letter-spacing:1px;transition:.15s;font-family:inherit}
+  .btn:hover{border-color:var(--accent);color:var(--accent)}
+  .btn.primary{background:var(--accent);color:#fff;border-color:var(--accent)}
+  .btn.primary:hover{color:#fff;opacity:.92}
+  .btn.break{background:transparent;color:var(--break);border-color:rgba(224,138,30,.45)}
+  .btn.break:hover{background:rgba(224,138,30,.08);color:var(--break)}
+  .cat{display:flex;gap:8px;justify-content:center;flex-wrap:wrap}
+  .chip{font-size:12px;color:var(--muted);border:1px solid var(--border);border-radius:999px;padding:6px 14px;cursor:pointer;background:var(--panel);user-select:none}
+  .chip.on{color:var(--accent);border-color:var(--accent);background:rgba(14,124,134,.06)}
+  .note{width:100%;margin-top:14px;background:var(--panel-2);border:1px solid var(--border);border-radius:11px;
+    padding:11px 14px;color:var(--text);font-size:13px;font-family:inherit;outline:none;resize:none}
+  .note::placeholder{color:var(--muted)}
+  .note:focus{border-color:var(--accent)}
+  /* right column */
+  .right{display:grid;gap:16px}
+  .stats{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+  .stat{background:var(--panel);border:1px solid var(--border);border-radius:14px;padding:16px;text-align:center}
+  .stat .n{font-size:26px;font-weight:800;color:var(--accent);font-variant-numeric:tabular-nums}
+  .stat .l{font-size:11px;color:var(--muted);letter-spacing:1px;margin-top:4px}
+  .card{background:var(--panel);border:1px solid var(--border);border-radius:16px;box-shadow:var(--shadow);overflow:hidden}
+  .card h2{font-size:14px;padding:16px 18px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center}
+  .card h2 .meta{font-size:11px;color:var(--muted);font-weight:500;display:flex;align-items:center;gap:12px}
+  .undo{color:var(--accent);cursor:pointer;text-decoration:none}
+  .undo:hover{text-decoration:underline}
+  table{width:100%;border-collapse:collapse;font-size:13px}
+  th,td{padding:12px 16px;text-align:left;border-bottom:1px solid var(--border)}
+  th{color:var(--muted);font-weight:600;font-size:11px;letter-spacing:1px;text-transform:uppercase}
+  tr:last-child td{border-bottom:0}
+  .tag{font-size:11px;padding:3px 9px;border-radius:6px;font-weight:600;white-space:nowrap}
+  .tag.work{background:rgba(14,124,134,.12);color:#0E7C86}
+  .tag.break{background:rgba(224,138,30,.12);color:#C2760F}
+  .cat-pill{color:var(--muted)}
+  .note-pill{color:var(--muted);max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .empty{padding:30px 16px;text-align:center;color:var(--muted);font-size:13px}
+  /* modal */
+  .modal{position:fixed;inset:0;background:rgba(31,42,55,.45);display:flex;align-items:center;justify-content:center;padding:18px;z-index:50}
+  .modal[hidden]{display:none}
+  .modal-box{background:var(--panel);border:1px solid var(--border);border-radius:16px;box-shadow:0 20px 60px rgba(0,0,0,.25);
+    width:100%;max-width:420px;padding:22px}
+  .modal-box h3{font-size:16px;margin-bottom:16px}
+  .modal-box label{display:block;font-size:12px;color:var(--muted);margin:12px 0 6px;letter-spacing:.5px}
+  .modal-box input{width:100%;padding:11px 13px;border:1px solid var(--border);border-radius:10px;font-size:13px;font-family:inherit;outline:none}
+  .modal-box input:focus{border-color:var(--accent)}
+  .modal-actions{display:flex;gap:10px;margin-top:18px;flex-wrap:wrap}
+  .modal-actions .btn{flex:1;padding:11px 0;font-size:13px;min-width:96px}
+  .sync-status{margin-top:14px;font-size:12px;color:var(--muted);line-height:1.6;white-space:pre-wrap;min-height:18px}
+  .sync-status.ok{color:var(--accent)}
+  .sync-status.bad{color:#D9694A}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="topbar">
+    <div class="brand">
+      <div class="logo">25</div>
+      <div><h1>番茄钟工作台</h1><p>Focus Ledger</p></div>
+    </div>
+    <button class="sync-btn" id="syncOpen"><span class="dot off" id="syncDot"></span><span id="syncLabel">未同步</span></button>
+  </div>
+
+  <div class="hero">
+    <div class="goal">
+      <div class="goal-top"><span>今日专注目标</span><b id="goalTxt">0 / 250 分钟</b></div>
+      <div class="bar"><div class="bar-fill" id="barFill" style="width:0%"></div></div>
+    </div>
+    <div class="log-btns">
+      <button class="btn primary" id="addWork">＋ 专注 25′</button>
+      <button class="btn break" id="addBreak">＋ 休息 5′</button>
+    </div>
+    <div class="cat">
+      <span class="chip on" data-cat="深度工作">深度工作</span>
+      <span class="chip" data-cat="阅读">阅读</span>
+      <span class="chip" data-cat="交易复盘">交易复盘</span>
+      <span class="chip" data-cat="英语">英语</span>
+    </div>
+    <input class="note" id="note" placeholder="备注（可选）：这 25 分钟做了什么">
+  </div>
+
+  <div class="right">
+    <div class="stats">
+      <div class="stat"><div class="n" id="stCount">0</div><div class="l">今日番茄</div></div>
+      <div class="stat"><div class="n" id="stMin">0′</div><div class="l">累计专注</div></div>
+      <div class="stat"><div class="n" id="stStreak">0</div><div class="l">连续天数</div></div>
+    </div>
+    <div class="card">
+      <h2>专注记录表 <span class="meta"><a class="undo" id="undo">↩ 撤销</a><span id="logCount">今日 0 条</span></span></h2>
+      <table>
+        <thead><tr><th>时间</th><th>类型</th><th>时长</th><th>分类</th><th>备注</th></tr></thead>
+        <tbody id="log"></tbody>
+      </table>
+      <div class="empty" id="empty" hidden>还没有记录，点上方的「＋ 专注 25′」记第一笔。</div>
+    </div>
+  </div>
+</div>
+
+<div class="modal" id="syncModal" hidden>
+  <div class="modal-box">
+    <h3>云端同步设置</h3>
+    <label>GitHub Token（仅需 gist 权限）</label>
+    <input id="syncToken" type="password" placeholder="ghp_..." autocomplete="off">
+    <label>Gist ID（留空＝首次启用自动创建）</label>
+    <input id="syncGist" placeholder="留空自动创建" autocomplete="off">
+    <div class="modal-actions">
+      <button class="btn primary" id="syncEnable">启用同步</button>
+      <button class="btn" id="syncDiag">同步诊断</button>
+      <button class="btn break" id="syncClose">关闭</button>
+    </div>
+    <div class="sync-status" id="syncStatus"></div>
+  </div>
+</div>
+<script>
+(function(){
+  "use strict";
+  const APP='focus_ledger', GOAL=250;
+  const DATA_KEY=APP+'_v1', SYNC_KEY=APP+'_sync_v1', GIST_FILE=APP+'_data.json';
+  const $ = id => document.getElementById(id);
+
+  // ---- data layer ----
+  let state = loadData();
+  function loadData(){ try{ const d=JSON.parse(localStorage.getItem(DATA_KEY)); if(d&&Array.isArray(d.entries)) return d; }catch(e){} return {entries:[]}; }
+  function saveData(){ localStorage.setItem(DATA_KEY, JSON.stringify(state)); }
+  function uid(){ return Date.now().toString(36)+Math.random().toString(36).slice(2,7); }
+  function fmtDate(d){ const y=d.getFullYear(),m=String(d.getMonth()+1).padStart(2,'0'),day=String(d.getDate()).padStart(2,'0'); return y+'-'+m+'-'+day; }
+  function fmtTime(ts){ const d=new Date(ts); return String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0'); }
+  function todayStr(){ return fmtDate(new Date()); }
+
+  // ---- ui state ----
+  let cat='深度工作';
+  const logEl=$('log'), noteEl=$('note'), barFill=$('barFill'), goalTxt=$('goalTxt'),
+        stCount=$('stCount'), stMin=$('stMin'), stStreak=$('stStreak'), logCount=$('logCount'), emptyEl=$('empty');
+
+  function render(){
+    const today=todayStr();
+    const sorted=state.entries.slice().sort((a,b)=>b.ts-a.ts);
+    logEl.innerHTML='';
+    let todayWork=0, todayMin=0;
+    sorted.forEach(e=>{
+      const isToday=fmtDate(new Date(e.ts))===today;
+      if(e.type==='work'&&isToday){ todayWork++; todayMin+=25; }
+      const tr=document.createElement('tr');
+      tr.innerHTML='<td>'+fmtTime(e.ts)+'</td>'+
+        '<td><span class="tag '+e.type+'">'+(e.type==='work'?'专注':'休息')+'</span></td>'+
+        '<td>'+(e.type==='work'?"25′":"5′")+'</td>'+
+        '<td class="cat-pill">'+(e.type==='work'?e.cat:'—')+'</td>'+
+        '<td class="note-pill">'+(e.note?escapeHtml(e.note):'—')+'</td>';
+      logEl.appendChild(tr);
+    });
+    emptyEl.hidden = state.entries.length>0;
+    stCount.textContent=todayWork;
+    stMin.textContent=todayMin+"′";
+    stStreak.textContent=streak();
+    goalTxt.textContent=todayMin+' / '+GOAL+' 分钟';
+    barFill.style.width=Math.min(100,Math.round(todayMin/GOAL*100))+'%';
+    logCount.textContent='今日 '+state.entries.length+' 条';
+  }
+  function escapeHtml(s){ return s.replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+
+  function streak(){
+    const days=new Set(state.entries.filter(e=>e.type==='work').map(e=>fmtDate(new Date(e.ts))));
+    if(days.size===0) return 0;
+    let d=new Date(); d.setHours(0,0,0,0);
+    if(!days.has(fmtDate(d))){ d.setDate(d.getDate()-1); if(!days.has(fmtDate(d))) return 0; }
+    let count=0;
+    while(days.has(fmtDate(d))){ count++; d.setDate(d.getDate()-1); }
+    return count;
+  }
+
+  function add(type){
+    state.entries.push({id:uid(), ts:Date.now(), type:type, cat:type==='work'?cat:'', note:noteEl.value.trim()});
+    noteEl.value=''; saveData(); render(); schedulePush();
+  }
+  function undo(){ if(state.entries.length){ state.entries.shift(); saveData(); render(); schedulePush(); } }
+
+  // ---- sync engine ----
+  let cfg=loadCfg();
+  function loadCfg(){ try{ const c=JSON.parse(localStorage.getItem(SYNC_KEY)); if(c) return c; }catch(e){} return {token:'',gistId:'',enabled:false}; }
+  function saveCfg(){ localStorage.setItem(SYNC_KEY, JSON.stringify(cfg)); }
+
+  let syncBusy=false, lastSync=0, syncErr='', pushTimer=null;
+  function updateChip(){
+    const dot=$('syncDot'), label=$('syncLabel');
+    dot.className='dot'+(!cfg.enabled?' off':syncBusy?' busy':syncErr?' err':'');
+    label.textContent = !cfg.enabled?'未同步' : syncBusy?'同步中…' : syncErr?'同步失败' : (lastSync?('已同步 · '+ago(lastSync)):'已同步');
+  }
+  function ago(ts){ const s=Math.floor((Date.now()-ts)/1000); if(s<60) return s+'s 前'; const m=Math.floor(s/60); if(m<60) return m+'m 前'; return Math.floor(m/60)+'h 前'; }
+
+  async function gistReq(method,path,body){
+    const r=await fetch('https://api.github.com'+path,{
+      method, headers:{Authorization:'token '+cfg.token, Accept:'application/vnd.github+json','Content-Type':'application/json'},
+      body: body?JSON.stringify(body):undefined
+    });
+    if(!r.ok){ let t=''; try{t=await r.text();}catch(e){} throw {status:r.status, body:t}; }
+    return r.json();
+  }
+  function mergeById(local,incoming,key){
+    const map=new Map(); local.forEach(x=>map.set(x[key],x));
+    (incoming||[]).forEach(x=>{ if(x&&x[key]) map.set(x[key],x); });
+    return Array.from(map.values());
+  }
+  async function pushSync(){
+    if(!cfg.enabled||!cfg.token) return;
+    syncBusy=true; updateChip();
+    try{
+      const payload={updatedAt:Date.now(), entries:state.entries};
+      const content=JSON.stringify(payload);
+      if(!cfg.gistId){
+        const j=await gistReq('POST','/gists',{public:false, files:{[GIST_FILE]:{content}}});
+        cfg.gistId=j.id; saveCfg();
+        setStatus('已创建 Gist：'+j.id+'（把这串 ID 抄给其它设备即可共享同一份数据）','ok');
+      }else{
+        await gistReq('PATCH','/gists/'+cfg.gistId,{files:{[GIST_FILE]:{content}}});
+      }
+      lastSync=Date.now(); syncErr='';
+    }catch(e){
+      syncErr=(e&&e.status)||'err';
+      if([401,403,404].includes(Number(syncErr))){ cfg.enabled=false; saveCfg();
+        setStatus('Token 无效或已过期（'+(e&&e.status)+'）。请到 github.com/settings/tokens 新建一支仅 gist 权限的 Token 后重填。','bad'); }
+    }finally{ syncBusy=false; updateChip(); }
+  }
+  async function pullSync(){
+    if(!cfg.enabled||!cfg.token||!cfg.gistId) return;
+    try{
+      const j=await gistReq('GET','/gists/'+cfg.gistId);
+      const f=j.files&&j.files[GIST_FILE]; if(!f||!f.content) return;
+      const data=JSON.parse(f.content); if(!data.entries) return;
+      state.entries=mergeById(state.entries,data.entries,'id');
+      saveData();
+      const ae=document.activeElement;
+      if(!(ae&&/INPUT|TEXTAREA/.test(ae.tagName))) render();
+      lastSync=Date.now(); syncErr='';
+    }catch(e){ syncErr=(e&&e.status)||'err'; }
+    finally{ updateChip(); }
+  }
+  function schedulePush(){ clearTimeout(pushTimer); pushTimer=setTimeout(pushSync,800); }
+  async function syncNow(){ await pullSync(); await pushSync(); }
+  function startAutoPull(){
+    setInterval(()=>{ if(cfg.enabled&&cfg.token&&cfg.gistId&&!syncBusy){
+      const ae=document.activeElement; if(ae&&/INPUT|TEXTAREA/.test(ae.tagName)) return; pullSync();
+    } }, 45000);
+  }
+
+  function setStatus(msg,kind){ const el=$('syncStatus'); el.textContent=msg; el.className='sync-status'+(kind?(' '+kind):''); }
+
+  // ---- events ----
+  $('addWork').onclick=()=>add('work');
+  $('addBreak').onclick=()=>add('break');
+  $('undo').onclick=undo;
+  document.querySelectorAll('.chip').forEach(c=>c.onclick=()=>{ document.querySelectorAll('.chip').forEach(x=>x.classList.remove('on')); c.classList.add('on'); cat=c.dataset.cat; });
+  $('syncOpen').onclick=()=>{ $('syncToken').value=cfg.token||''; $('syncGist').value=cfg.gistId||''; $('syncModal').hidden=false; };
+  $('syncClose').onclick=()=>{ $('syncModal').hidden=true; };
+  $('syncEnable').onclick=async()=>{
+    cfg.token=$('syncToken').value.trim(); cfg.gistId=$('syncGist').value.trim(); cfg.enabled=true; saveCfg();
+    setStatus('正在同步…',''); await syncNow(); updateChip();
+    if(cfg.enabled) setStatus('同步已启用。'+(cfg.gistId?('Gist ID：'+cfg.gistId):''),'ok');
+  };
+  $('syncDiag').onclick=async()=>{
+    if(!cfg.token){ setStatus('请先填写 Token。','bad'); return; }
+    try{ const u=await gistReq('GET','/user'); setStatus('Token 有效，账号：'+u.login+(cfg.gistId?('\nGist ID：'+cfg.gistId):'\n尚未绑定 Gist（启用后将自动创建）'),'ok'); }
+    catch(e){ setStatus('Token 校验失败（'+(e&&e.status)+'）。可能已失效，请新建。','bad'); }
+  };
+
+  // ---- boot ----
+  render(); updateChip(); startAutoPull();
+  setInterval(updateChip, 1000);
+  if('serviceWorker' in navigator){ navigator.serviceWorker.register('./sw.js').catch(()=>{}); }
+})();
+</script>
+</body>
+</html>
