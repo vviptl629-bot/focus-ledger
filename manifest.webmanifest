@@ -1,6 +1,6 @@
 {
-  "name": "番茄钟工作台 · 专注记录",
-  "short_name": "专注记录",
+  "name": "专注记录台 · Focus Ledger",
+  "short_name": "专注记录台",
   "description": "25 分钟专注 / 5 分钟休息的专注记录表，支持跨设备同步",
   "id": "/focus-ledger/",
   "start_url": "./",
