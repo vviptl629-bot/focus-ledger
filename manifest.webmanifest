@@ -1,0 +1,14 @@
+{
+  "name": "番茄钟工作台 · 专注记录",
+  "short_name": "专注记录",
+  "description": "25 分钟专注 / 5 分钟休息的专注记录表，支持跨设备同步",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#EEF1F5",
+  "theme_color": "#0E7C86",
+  "icons": [
+    { "src": "./icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" },
+    { "src": "./icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "maskable" }
+  ]
+}
