@@ -956,6 +956,8 @@
 
   // ---- boot ----
   saveData(); render(); renderCalendar(); updateChip(); startAutoPull();
+  // 已启用同步的设备：打开即拉一次，不必干等第一个 45s 轮询（拉取是按 id 合并，不会覆盖本地新数据）
+  if(cfg.enabled&&cfg.token&&cfg.gistId) pullSync();
   setInterval(updateChip, 1000);
   if(navigator.serviceWorker){ navigator.serviceWorker.register('./sw.js').catch(()=>{}); }
 })();
