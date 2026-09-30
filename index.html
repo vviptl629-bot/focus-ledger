@@ -174,7 +174,57 @@
     .card .day-head{padding:12px 15px;gap:8px}
     .card .day-label{font-size:12px}
     .card .day-meta{font-size:10px}
+    /* 日历模块（移动端微调） */
+    .cal-body{padding:4px 12px 12px}
+    .cal-nav{padding:10px 12px}
+    .wk-track{height:300px}
   }
+  /* ===== 日历模块 ===== */
+  .cal-card .cal-tabs{display:flex;padding:12px 18px 0}
+  .cal-card .cal-tabs .seg{width:100%}
+  .cal-nav{display:flex;align-items:center;justify-content:center;gap:8px;padding:12px 18px}
+  .cal-nav button{width:32px;height:32px;border:1px solid var(--border);background:var(--panel);border-radius:9px;cursor:pointer;color:var(--text);font-size:15px}
+  .cal-nav button:hover{border-color:var(--accent);color:var(--accent)}
+  .cal-nav .lbl{font-size:13px;font-weight:700;min-width:110px;text-align:center}
+  .cal-body{padding:4px 18px 16px}
+  .cal-legend{display:flex;align-items:center;gap:6px;font-size:11px;color:var(--muted);padding:0 18px 14px;flex-wrap:wrap}
+  .cal-legend .it{display:flex;align-items:center;gap:5px}
+  .cal-legend .sw{width:14px;height:14px;border-radius:4px}
+  .mcal{display:grid;grid-template-columns:repeat(7,1fr);gap:6px}
+  .mcal .wd{text-align:center;font-size:11px;color:var(--muted);padding:2px 0}
+  .mcell{position:relative;aspect-ratio:1/1;border:1px solid var(--border);border-radius:10px;background:var(--panel-2);padding:6px;cursor:pointer;display:flex;flex-direction:column;overflow:hidden;transition:.12s}
+  .mcell:hover{border-color:var(--accent)}
+  .mcell.empty{background:transparent;border-color:transparent;cursor:default}
+  .mcell .d{font-size:11px;color:var(--muted);align-self:flex-end}
+  .mcell .mn{font-size:12px;font-weight:700;margin-top:auto}
+  .mcell.lv1{background:rgba(14,124,134,.16)} .mcell.lv2{background:rgba(14,124,134,.36)}
+  .mcell.lv3{background:rgba(14,124,134,.60);color:#fff} .mcell.lv4{background:rgba(14,124,134,.92);color:#fff}
+  .mcell.lv3 .d,.mcell.lv4 .d{color:rgba(255,255,255,.82)}
+  .mcell.today{border-color:var(--accent);box-shadow:0 0 0 2px rgba(14,124,134,.22)}
+  .mcell.sel{border-color:var(--break);box-shadow:0 0 0 2px rgba(224,138,30,.35)}
+  .heat-scroll{overflow-x:auto}
+  .heat-months{margin-bottom:4px}
+  .heat-months div{font-size:10px;color:var(--muted);white-space:nowrap}
+  .heat{display:grid;grid-auto-flow:column;grid-template-rows:repeat(7,14px);gap:4px;width:max-content}
+  .hsq{width:14px;height:14px;border-radius:3px;background:var(--panel-2);cursor:pointer;transition:.1s}
+  .hsq:hover{outline:2px solid var(--accent);outline-offset:1px}
+  .hsq.lv1{background:rgba(14,124,134,.18)} .hsq.lv2{background:rgba(14,124,134,.38)} .hsq.lv3{background:rgba(14,124,134,.62)} .hsq.lv4{background:rgba(14,124,134,.92)}
+  .hsq.sel{outline:2px solid var(--break);outline-offset:1px}
+  .wk-scroll{overflow-x:auto}
+  .wk{display:grid;grid-template-columns:repeat(7,1fr);gap:10px;min-width:640px}
+  .wk-col{display:flex;flex-direction:column;align-items:stretch;gap:6px}
+  .wk-head{text-align:center;font-size:11px;line-height:1.5}
+  .wk-head .wd{font-weight:700;font-size:12px}
+  .wk-head .dt{color:var(--muted)}
+  .wk-head .tot{color:var(--accent);font-weight:700}
+  .wk-head.today .wd{color:var(--accent)}
+  .wk-track{position:relative;height:340px;background:var(--panel-2);border:1px solid var(--border);border-radius:8px;overflow:hidden}
+  .wk-hr{position:absolute;left:0;right:0;border-top:1px dashed var(--border);font-size:8px;color:var(--muted);padding-left:3px}
+  .wk-blk{position:absolute;left:5px;right:5px;border-radius:5px;padding:3px 5px;font-size:9px;color:#fff;overflow:hidden;cursor:pointer;line-height:1.25;box-shadow:0 1px 3px rgba(0,0,0,.15)}
+  .wk-blk:hover{filter:brightness(1.08)}
+  .wk-blk .c{font-weight:700}
+  .wk-blk .mm{opacity:.9}
+  .cal-detail{border-top:1px solid var(--border)}
 </style>
 </head>
 <body>
@@ -217,6 +267,22 @@
       <div class="empty" id="empty" hidden>还没有记录，点上方的「＋ 专注 25′」记第一笔。</div>
     </div>
   </div>
+
+  <div class="card cal-card" id="calCard">
+    <h2>专注日历 <span class="meta"><span id="calMeta"></span></span></h2>
+    <div class="cal-tabs"><div class="seg" id="calTabs">
+      <button class="seg-btn on" data-view="month">月历</button>
+      <button class="seg-btn" data-view="year">年度</button>
+      <button class="seg-btn" data-view="week">周视图</button>
+    </div></div>
+    <div class="cal-nav" id="calNav"></div>
+    <div class="cal-body" id="calBody"></div>
+    <div class="cal-detail">
+      <div class="day-head"><span id="calDh"></span><span class="day-meta" id="calDm"></span></div>
+      <div id="calDetail"></div>
+    </div>
+  </div>
+
 </div>
 
 <!-- 自定义录入 -->
@@ -462,7 +528,7 @@
 
   function add(type,min,ts,note){
     state.entries.push({id:uid(), ts:ts||Date.now(), type:type, min:min, cat:type==='work'?cat:'', note:(note||'').trim()});
-    saveData(); render(); schedulePush();
+    saveData(); render(); renderCalendar(); schedulePush();
   }
 
   // ---- 自定义录入 ----
@@ -528,7 +594,7 @@
       }
     });
     if(!visibleCats().some(c=>c.name===cat)) cat=(visibleCats()[0]||{}).name||'';
-    saveData(); render(); schedulePush();
+    saveData(); render(); renderCalendar(); schedulePush();
     $('catModal').hidden=true;
   }
 
@@ -594,7 +660,7 @@
       if(data.cats) state.cats=mergeCats(state.cats,data.cats);
       saveData();
       const ae=document.activeElement;
-      if(!(ae&&/INPUT|TEXTAREA/.test(ae.tagName))) render();
+      if(!(ae&&/INPUT|TEXTAREA/.test(ae.tagName))){ render(); renderCalendar(); }
       lastSync=Date.now(); syncErr='';
     }catch(e){ syncErr=(e&&e.status)||'err'; }
     finally{ updateChip(); }
@@ -661,14 +727,14 @@
     let m=parseInt($('eMin').value,10); if(!(m>0)) m=25; m=Math.min(1440,m);
     let ts=new Date($('eWhen').value).getTime(); if(isNaN(ts)) ts=Date.now();
     e.type=eType; e.min=m; e.ts=ts; e.cat=eType==='work'?eCat:''; e.note=($('eNote').value||'').trim();
-    saveData(); render(); schedulePush();
+    saveData(); render(); renderCalendar(); schedulePush();
     $('editModal').hidden=true;
   }
   function deleteEntry(id){
     const e=state.entries.find(x=>x.id===id); if(!e) return;
     askConfirm('确认删除这条记录？', '时间 '+fmtTime(e.ts)+' · '+(e.type==='work'?'专注':'休息')+' '+entryMin(e)+'′'+(e.cat?(' · '+e.cat):''), ()=>{
       state.entries=state.entries.filter(x=>x.id!==id);
-      saveData(); render(); schedulePush();
+      saveData(); render(); renderCalendar(); schedulePush();
     });
   }
 
@@ -709,8 +775,126 @@
     catch(e){ setStatus('Token 校验失败（'+(e&&e.status)+'）。可能已失效，请新建。','bad'); }
   };
 
+  // ===== 日历模块 =====
+  const CAL_WD=['日','一','二','三','四','五','六'];
+  const CAT_PALETTE=['#0E7C86','#3B6FB5','#C98A12','#C0532B','#4F8A6B','#6B7785','#8A6D3B','#2E8B8B'];
+  function catColor(name){ let h=0; for(let i=0;i<name.length;i++) h=(h*31+name.charCodeAt(i))>>>0; return CAT_PALETTE[h%CAT_PALETTE.length]; }
+  function dayFocusMin(dStr){ return state.entries.filter(e=>e.type==='work'&&fmtDate(new Date(e.ts))===dStr).reduce((s,e)=>s+entryMin(e),0); }
+  function level(min){ if(min<=0)return 0; if(min<=30)return 1; if(min<=60)return 2; if(min<=120)return 3; return 4; }
+  function entriesOnDay(dStr){ return state.entries.filter(e=>fmtDate(new Date(e.ts))===dStr).sort((a,b)=>a.ts-b.ts); }
+  function intensityLegend(){ return '<div class="cal-legend"><span>少</span>'+
+    '<span class="sw" style="background:var(--panel-2);border:1px solid var(--border)"></span>'+
+    '<span class="sw" style="background:rgba(14,124,134,.18)"></span>'+
+    '<span class="sw" style="background:rgba(14,124,134,.38)"></span>'+
+    '<span class="sw" style="background:rgba(14,124,134,.62)"></span>'+
+    '<span class="sw" style="background:rgba(14,124,134,.92)"></span>'+
+    '<span>多（专注分钟）</span></div>'; }
+  let calView='month', calY=new Date().getFullYear(), calM=new Date().getMonth(),
+      calYear=new Date().getFullYear(),
+      calWeekStart=(()=>{ const d=new Date(); d.setHours(0,0,0,0); d.setDate(d.getDate()-d.getDay()); return d; })();
+  let selDay=todayStr();
+  const calBody=$('calBody'), calDetail=$('calDetail'), calDh=$('calDh'), calDm=$('calDm'), calMeta=$('calMeta'), calNav=$('calNav'), calTabsEl=$('calTabs');
+
+  function buildDayDetail(dStr){
+    const entries=entriesOnDay(dStr);
+    calDh.textContent=dayLabel(dStr,todayStr());
+    calDm.textContent=entries.length+' 笔 · 专注 '+dayFocusMin(dStr)+'′';
+    if(!entries.length){ calDetail.innerHTML='<div class="empty">这一天还没有专注记录。</div>'; return; }
+    let rows=entries.map(e=>{
+      const m=entryMin(e);
+      const td1='<td class="c-time">'+fmtTime(e.ts)+'</td>';
+      const td2='<td class="c-type"><span class="tag '+e.type+'">'+(e.type==='work'?'专注':'休息')+'</span></td>';
+      const td3='<td class="c-dur">'+m+'′</td>';
+      const td4='<td class="cat-pill">'+(e.type==='work'?(e.cat||''):'')+'</td>';
+      const td5='<td class="note-pill" title="'+escapeHtml(e.note||'')+'">'+(escapeHtml(e.note||''))+'</td>';
+      const td6='<td class="c-acts"><div class="row-actions"><button class="act" data-ed="'+e.id+'">编辑</button><button class="act del" data-dl="'+e.id+'">删除</button></div></td>';
+      return '<tr>'+td1+td2+td3+td4+td5+td6+'</tr>';
+    }).join('');
+    calDetail.innerHTML='<table><thead><tr><th>时间</th><th>类型</th><th>时长</th><th>分类</th><th>备注</th><th>操作</th></tr></thead><tbody>'+rows+'</tbody></table>';
+    calDetail.querySelectorAll('[data-ed]').forEach(b=>b.onclick=()=>openEdit(b.dataset.ed));
+    calDetail.querySelectorAll('[data-dl]').forEach(b=>b.onclick=()=>deleteEntry(b.dataset.dl));
+  }
+  function renderMonth(){
+    calNav.innerHTML='<button id="mPrev">‹</button><span class="lbl" id="mLbl"></span><button id="mNext">›</button>';
+    $('mLbl').textContent=calY+'年'+(calM+1)+'月';
+    $('mPrev').onclick=()=>{ calM--; if(calM<0){calM=11;calY--;} renderCalendar(); };
+    $('mNext').onclick=()=>{ calM++; if(calM>11){calM=0;calY++;} renderCalendar(); };
+    const first=new Date(calY,calM,1), startDow=first.getDay(), dim=new Date(calY,calM+1,0).getDate();
+    let html='<div class="mcal">';
+    CAL_WD.forEach(w=>html+='<div class="wd">'+w+'</div>');
+    for(let i=0;i<startDow;i++) html+='<div class="mcell empty"></div>';
+    for(let d=1;d<=dim;d++){
+      const ds=fmtDate(new Date(calY,calM,d)), min=dayFocusMin(ds), lv=level(min);
+      const cls='mcell lv'+lv+(ds===todayStr()?' today':'')+(ds===selDay?' sel':'');
+      html+='<div class="'+cls+'" data-d="'+ds+'"><span class="d">'+d+'</span>'+(min>0?'<span class="mn">'+min+'′</span>':'')+'</div>';
+    }
+    html+='</div>'+intensityLegend();
+    calBody.innerHTML=html;
+    calBody.querySelectorAll('.mcell[data-d]').forEach(c=>c.onclick=()=>{ selDay=c.dataset.d; renderCalendar(); });
+  }
+  function renderYear(){
+    calNav.innerHTML='<button id="yPrev">‹</button><span class="lbl" id="yLbl"></span><button id="yNext">›</button>';
+    $('yLbl').textContent=calYear+' 年';
+    $('yPrev').onclick=()=>{ calYear--; renderCalendar(); };
+    $('yNext').onclick=()=>{ calYear++; renderCalendar(); };
+    const jan1=new Date(calYear,0,1); const start=new Date(jan1); start.setDate(start.getDate()-jan1.getDay());
+    const weeks=53;
+    let months='<div class="heat-months" style="grid-template-columns:repeat('+weeks+',18px)">';
+    let lastMon=-1;
+    for(let w=0;w<weeks;w++){ const fd=new Date(start); fd.setDate(start.getDate()+w*7);
+      months+=(fd.getMonth()!==lastMon)?('<div>'+(fd.getMonth()+1)+'月</div>'):'<div></div>'; lastMon=fd.getMonth(); }
+    months+='</div>';
+    let squares='<div class="heat">';
+    for(let w=0;w<weeks;w++) for(let dow=0;dow<7;dow++){
+      const dt=new Date(start); dt.setDate(start.getDate()+w*7+dow);
+      if(dt.getFullYear()!==calYear){ squares+='<div class="hsq" style="visibility:hidden"></div>'; continue; }
+      const ds=fmtDate(dt), min=dayFocusMin(ds), lv=level(min);
+      squares+='<div class="hsq lv'+lv+(ds===selDay?' sel':'')+'" data-d="'+ds+'" title="'+ds+' · '+min+'′"></div>';
+    }
+    squares+='</div>';
+    calBody.innerHTML='<div class="heat-scroll">'+months+squares+'</div>'+intensityLegend();
+    calBody.querySelectorAll('.hsq[data-d]').forEach(c=>c.onclick=()=>{ selDay=c.dataset.d; renderCalendar(); });
+  }
+  function renderWeek(){
+    const endLbl=new Date(calWeekStart); endLbl.setDate(endLbl.getDate()+6);
+    calNav.innerHTML='<button id="wPrev">‹</button><span class="lbl" id="wLbl"></span><button id="wNext">›</button>';
+    $('wLbl').textContent=fmtDate(calWeekStart).slice(5)+' ~ '+fmtDate(endLbl).slice(5);
+    $('wPrev').onclick=()=>{ calWeekStart.setDate(calWeekStart.getDate()-7); renderCalendar(); };
+    $('wNext').onclick=()=>{ calWeekStart.setDate(calWeekStart.getDate()+7); renderCalendar(); };
+    const T0=6,T1=24,H=(T1-T0)*60,Hpx=340, todayS=todayStr();
+    let html='<div class="wk-scroll"><div class="wk">';
+    for(let i=0;i<7;i++){
+      const dt=new Date(calWeekStart); dt.setDate(calWeekStart.getDate()+i);
+      const ds=fmtDate(dt), min=dayFocusMin(ds);
+      html+='<div class="wk-col" data-d="'+ds+'"><div class="wk-head'+(ds===todayS?' today':'')+'"><div class="wd">'+CAL_WD[dt.getDay()]+'</div><div class="dt">'+ds.slice(5)+'</div><div class="tot">'+(min>0?min+'′':'—')+'</div></div><div class="wk-track">';
+      [9,12,15,18,21].forEach(hh=>{ html+='<div class="wk-hr" style="top:'+((hh-T0)/H*Hpx)+'px">'+hh+':00</div>'; });
+      entriesOnDay(ds).forEach(e=>{
+        const st=new Date(e.ts).getHours()*60+new Date(e.ts).getMinutes();
+        const top=((st-T0*60)/H*Hpx), hgt=Math.max(14,(entryMin(e)/60)/H*Hpx);
+        const bg=e.type==='break'?'var(--break)':catColor(e.cat||'未分类');
+        const label=e.type==='break'?'休息':(e.cat||'专注');
+        html+='<div class="wk-blk" data-d="'+ds+'" style="top:'+top+'px;height:'+hgt+'px;background:'+bg+'" title="'+ds+' '+fmtTime(e.ts)+' '+label+' '+entryMin(e)+'′"><div class="c">'+label+'</div><div class="mm">'+entryMin(e)+'′</div></div>';
+      });
+      html+='</div></div>';
+    }
+    html+='</div></div>';
+    const cats=visibleCats(); let leg='<div class="cal-legend">';
+    cats.forEach(c=>leg+='<span class="it"><span class="sw" style="background:'+catColor(c.name)+'"></span>'+escapeHtml(c.name)+'</span>');
+    leg+='<span class="it"><span class="sw" style="background:var(--break)"></span>休息</span></div>';
+    calBody.innerHTML=html+leg;
+    calBody.querySelectorAll('[data-d]').forEach(c=>c.onclick=()=>{ selDay=c.dataset.d; renderCalendar(); });
+  }
+  function renderCalendar(){
+    calTabsEl.querySelectorAll('.seg-btn').forEach(b=>b.classList.toggle('on',b.dataset.view===calView));
+    if(calView==='month'){ renderMonth(); calMeta.textContent='点日期看当天明细'; }
+    else if(calView==='year'){ renderYear(); calMeta.textContent='点格子看当天明细'; }
+    else { renderWeek(); calMeta.textContent='点某天看明细'; }
+    buildDayDetail(selDay);
+  }
+  calTabsEl.querySelectorAll('.seg-btn').forEach(b=>b.onclick=()=>{ calView=b.dataset.view; renderCalendar(); });
+
   // ---- boot ----
-  saveData(); render(); updateChip(); startAutoPull();
+  saveData(); render(); renderCalendar(); updateChip(); startAutoPull();
   setInterval(updateChip, 1000);
   if(navigator.serviceWorker){ navigator.serviceWorker.register('./sw.js').catch(()=>{}); }
 })();
