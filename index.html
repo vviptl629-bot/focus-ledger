@@ -230,6 +230,12 @@
   .wk-blk:hover{filter:brightness(1.08)}
   .wk-blk .c{font-weight:700}
   .wk-blk .mm{opacity:.9}
+  /* 手机端周视图：只显示 3 天（前一天 / 今天 / 后一天），整宽铺满、右侧不再露半列 */
+  .wk[data-days="3"]{grid-template-columns:44px repeat(3,1fr);gap:6px;min-width:0}
+  .wk[data-days="3"] .wk-head .dt{font-size:10px}
+  .wk[data-days="3"] .wk-blk{left:4px;right:4px}
+  .wk[data-days="3"] .wk-col.is-today .wk-track{background:rgba(14,124,134,.06);border-color:rgba(14,124,134,.38)}
+  .wk[data-days="3"] .wk-col.is-today .wk-head .wd{font-size:13px}
   .cal-detail{border-top:1px solid var(--border)}
 </style>
 </head>
@@ -277,9 +283,9 @@
   <div class="card cal-card" id="calCard">
     <h2>专注日历 <span class="meta"><span id="calMeta"></span></span></h2>
     <div class="cal-tabs"><div class="seg" id="calTabs">
-      <button class="seg-btn on" data-view="month">月历</button>
+      <button class="seg-btn on" data-view="week">周视图</button>
+      <button class="seg-btn" data-view="month">月历</button>
       <button class="seg-btn" data-view="year">年度</button>
-      <button class="seg-btn" data-view="week">周视图</button>
     </div></div>
     <div class="cal-nav" id="calNav"></div>
     <div class="cal-body" id="calBody"></div>
@@ -795,9 +801,17 @@
     '<span class="sw" style="background:rgba(14,124,134,.62)"></span>'+
     '<span class="sw" style="background:rgba(14,124,134,.92)"></span>'+
     '<span>多（专注分钟）</span></div>'; }
-  let calView='month', calY=new Date().getFullYear(), calM=new Date().getMonth(),
-      calYear=new Date().getFullYear(),
-      calWeekStart=(()=>{ const d=new Date(); d.setHours(0,0,0,0); d.setDate(d.getDate()-d.getDay()); return d; })();
+  let calView='week', calY=new Date().getFullYear(), calM=new Date().getMonth(),
+      calYear=new Date().getFullYear();
+  // 周视图窗口：手机 3 天（前一天 / 今天 / 后一天），桌面 7 天（本周日 → 周六）
+  const NARROW=()=>window.innerWidth<=768;
+  const winDays=()=>NARROW()?3:7;
+  function defaultWinStart(){
+    const d=new Date(); d.setHours(0,0,0,0);
+    d.setDate(d.getDate()+(NARROW()?-1:-d.getDay()));   // 手机=昨天，桌面=本周日
+    return d;
+  }
+  let calWinStart=defaultWinStart(), winMode=NARROW()?'n':'w';
   let selDay=todayStr();
   const calBody=$('calBody'), calDetail=$('calDetail'), calDh=$('calDh'), calDm=$('calDm'), calMeta=$('calMeta'), calNav=$('calNav'), calTabsEl=$('calTabs');
 
@@ -870,27 +884,28 @@
     return 340;
   }
   function renderWeek(){
-    const endLbl=new Date(calWeekStart); endLbl.setDate(endLbl.getDate()+6);
+    const N=winDays(), start=calWinStart;                 // 手机 3 列 / 桌面 7 列
+    const endLbl=new Date(start); endLbl.setDate(endLbl.getDate()+N-1);
     calNav.innerHTML='<button id="wPrev">‹</button><span class="lbl" id="wLbl"></span><button id="wNext">›</button>';
-    $('wLbl').textContent=fmtDate(calWeekStart).slice(5)+' ~ '+fmtDate(endLbl).slice(5);
-    $('wPrev').onclick=()=>{ calWeekStart.setDate(calWeekStart.getDate()-7); renderCalendar(); };
-    $('wNext').onclick=()=>{ calWeekStart.setDate(calWeekStart.getDate()+7); renderCalendar(); };
+    $('wLbl').textContent=fmtDate(start).slice(5)+' ~ '+fmtDate(endLbl).slice(5);
+    $('wPrev').onclick=()=>{ calWinStart.setDate(calWinStart.getDate()-N); renderCalendar(); };
+    $('wNext').onclick=()=>{ calWinStart.setDate(calWinStart.getDate()+N); renderCalendar(); };
     const T0=6,T1=24,H=T1-T0,Hpx=wkh(), todayS=todayStr();   // H=小时跨度(18)
     const hrTop=hh=>(hh-T0)/H*Hpx;            // 小时(可带小数) → 轨道内像素位置
     const hgtOf=m=>Math.max(14,(m/60)/H*Hpx); // 分钟时长 → 色块高度(最小 14px 可点)
     const MARKS=[9,12,15,18,21];
-    let html='<div class="wk-scroll"><div class="wk">';
+    let html='<div class="wk-scroll"><div class="wk" data-days="'+N+'">';
     // ---- 左侧时间轴：单独一列，随横向滚动吸附在左边，只在轨道上方排一圈刻度 ----
     html+='<div class="wk-col axis"><div class="wk-head"><div class="wd">&nbsp;</div><div class="dt">&nbsp;</div><div class="tot">&nbsp;</div></div><div class="wk-track axis">';
     MARKS.forEach(hh=>{ const t=hrTop(hh);
       html+='<div class="wk-hr" style="top:'+t+'px"></div><div class="wk-lbl" style="top:'+t+'px">'+String(hh).padStart(2,'0')+':00</div>';
     });
     html+='</div></div>';
-    // ---- 7 天 ----
-    for(let i=0;i<7;i++){
-      const dt=new Date(calWeekStart); dt.setDate(calWeekStart.getDate()+i);
+    // ---- N 天 ----
+    for(let i=0;i<N;i++){
+      const dt=new Date(start); dt.setDate(start.getDate()+i);
       const ds=fmtDate(dt), min=dayFocusMin(ds);
-      html+='<div class="wk-col" data-d="'+ds+'"><div class="wk-head'+(ds===todayS?' today':'')+'"><div class="wd">'+CAL_WD[dt.getDay()]+'</div><div class="dt">'+ds.slice(5)+'</div><div class="tot">'+(min>0?min+'′':'—')+'</div></div><div class="wk-track">';
+      html+='<div class="wk-col'+(ds===todayS?' is-today':'')+'" data-d="'+ds+'"><div class="wk-head'+(ds===todayS?' today':'')+'"><div class="wd">'+CAL_WD[dt.getDay()]+'</div><div class="dt">'+ds.slice(5)+'</div><div class="tot">'+(min>0?min+'′':'—')+'</div></div><div class="wk-track">';
       MARKS.forEach(hh=>{ html+='<div class="wk-hr" style="top:'+hrTop(hh)+'px"></div>'; });   // 只画网格线，刻度文字只出现在左侧时间轴
       entriesOnDay(ds).forEach(e=>{
         const ed=new Date(e.ts), st=ed.getHours()*60+ed.getMinutes();
@@ -916,6 +931,13 @@
     buildDayDetail(selDay);
   }
   calTabsEl.querySelectorAll('.seg-btn').forEach(b=>b.onclick=()=>{ calView=b.dataset.view; renderCalendar(); });
+  // 视口跨断点时切换窗口长度（手机 3 天 / 桌面 7 天），并各自回到自己的默认锚点
+  window.addEventListener('resize',()=>{
+    const m=NARROW()?'n':'w';
+    if(m===winMode) return;
+    winMode=m; calWinStart=defaultWinStart();
+    if(calView==='week') renderCalendar();
+  });
 
   // ---- boot ----
   saveData(); render(); renderCalendar(); updateChip(); startAutoPull();
