@@ -41,13 +41,14 @@
   .dot.err{background:var(--danger);box-shadow:0 0 0 4px rgba(217,105,74,.18)}
   .dot.busy{background:var(--break);box-shadow:0 0 0 4px rgba(224,138,30,.15)}
   /* record entry card */
-  .hero{background:var(--panel);border:1px solid var(--border);border-radius:18px;padding:24px 22px;box-shadow:var(--shadow)}
-  .goal{margin-bottom:20px}
+  .hero{background:var(--panel);border:1px solid var(--border);border-radius:18px;padding:24px 22px;box-shadow:var(--shadow);
+    display:flex;flex-direction:column;gap:13px}
+  .goal{margin:0;padding-top:16px;border-top:1px dashed var(--border)}
   .goal-top{display:flex;justify-content:space-between;align-items:baseline;font-size:12px;color:var(--muted);margin-bottom:9px;letter-spacing:1px}
   .goal-top b{color:var(--text);font-size:15px;font-weight:700;font-variant-numeric:tabular-nums}
   .bar{height:9px;background:var(--panel-2);border:1px solid var(--border);border-radius:999px;overflow:hidden}
   .bar-fill{height:100%;background:linear-gradient(90deg,var(--accent),#13a3af);border-radius:999px;transition:width .4s ease}
-  .log-btns{display:flex;gap:12px;margin:6px 0 12px}
+  .log-btns{display:flex;gap:12px;margin:0}
   .log-btns .btn{flex:1;padding:16px 0;font-size:15px}
   .btn{border:1px solid var(--border);background:var(--panel);color:var(--text);font-size:14px;font-weight:600;
     border-radius:11px;cursor:pointer;letter-spacing:1px;transition:.15s;font-family:inherit}
@@ -56,14 +57,14 @@
   .btn.primary:hover{color:#fff;opacity:.92}
   .btn.break{background:transparent;color:var(--break);border-color:rgba(224,138,30,.45)}
   .btn.break:hover{background:rgba(224,138,30,.08);color:var(--break)}
-  .btn.ghost{width:100%;margin:0 0 16px;padding:11px 0;font-size:13px;color:var(--muted);border-style:dashed;letter-spacing:.5px}
+  .btn.ghost{width:100%;margin:0;padding:11px 0;font-size:13px;color:var(--muted);border-style:dashed;letter-spacing:.5px}
   .btn.ghost:hover{border-color:var(--accent);color:var(--accent)}
   .cat{display:flex;gap:8px;justify-content:center;flex-wrap:wrap}
   .chip{font-size:12px;color:var(--muted);border:1px solid var(--border);border-radius:999px;padding:6px 14px;cursor:pointer;background:var(--panel);user-select:none;transition:.12s}
   .chip:hover{border-color:var(--accent);color:var(--accent)}
   .chip.on{color:var(--accent);border-color:var(--accent);background:rgba(14,124,134,.06)}
   .chip.edit{border-style:dashed;color:var(--accent);border-color:rgba(14,124,134,.5)}
-  .note{width:100%;margin-top:14px;background:var(--panel-2);border:1px solid var(--border);border-radius:11px;
+  .note{width:100%;margin:0;background:var(--panel-2);border:1px solid var(--border);border-radius:11px;
     padding:11px 14px;color:var(--text);font-size:13px;font-family:inherit;outline:none;resize:none}
   .note::placeholder{color:var(--muted)}
   .note:focus{border-color:var(--accent)}
@@ -252,17 +253,17 @@
   </div>
 
   <div class="hero">
+    <input class="note" id="note" placeholder="这一段做了什么">
+    <div class="cat" id="catBox"></div>
+    <div class="log-btns">
+      <button class="btn break" id="addBreak">＋ 休息 5′</button>
+      <button class="btn primary" id="addWork">＋ 专注 25′</button>
+    </div>
+    <button class="btn ghost" id="openCustom">＋ 自定义一笔（时长 / 时间可改）</button>
     <div class="goal">
       <div class="goal-top"><span>今日专注目标</span><b id="goalTxt">0 / 250 分钟</b></div>
       <div class="bar"><div class="bar-fill" id="barFill" style="width:0%"></div></div>
     </div>
-    <div class="log-btns">
-      <button class="btn primary" id="addWork">＋ 专注 25′</button>
-      <button class="btn break" id="addBreak">＋ 休息 5′</button>
-    </div>
-    <button class="btn ghost" id="openCustom">＋ 自定义一笔（时长 / 时间可改）</button>
-    <div class="cat" id="catBox"></div>
-    <input class="note" id="note" placeholder="备注（可选）：这一段做了什么">
   </div>
 
   <div class="right">
@@ -319,7 +320,7 @@
       <label>分类</label>
       <div class="cat" id="cCatBox"></div>
     </div>
-    <label>备注（可选）</label>
+    <label>这一段做了什么</label>
     <input id="cNote" placeholder="这一段做了什么">
     <div class="modal-actions">
       <button class="btn primary" id="cSave">记一笔</button>
@@ -385,7 +386,7 @@
       <label>分类</label>
       <div class="cat" id="eCatBox"></div>
     </div>
-    <label>备注（可选）</label>
+    <label>这一段做了什么</label>
     <input id="eNote" placeholder="这一段做了什么">
     <div class="modal-actions">
       <button class="btn primary" id="eSave">保存</button>
