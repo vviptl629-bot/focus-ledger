@@ -204,14 +204,25 @@
   .mcell.lv3 .d,.mcell.lv4 .d{color:rgba(255,255,255,.82)}
   .mcell.today{border-color:var(--accent);box-shadow:0 0 0 2px rgba(14,124,134,.22)}
   .mcell.sel{border-color:var(--break);box-shadow:0 0 0 2px rgba(224,138,30,.35)}
-  .heat-scroll{overflow-x:auto}
-  .heat-months{margin-bottom:4px}
-  .heat-months div{font-size:10px;color:var(--muted);white-space:nowrap}
-  .heat{display:grid;grid-auto-flow:column;grid-template-rows:repeat(7,14px);gap:4px;width:max-content}
-  .hsq{width:14px;height:14px;border-radius:3px;background:var(--panel-2);cursor:pointer;transition:.1s}
-  .hsq:hover{outline:2px solid var(--accent);outline-offset:1px}
-  .hsq.lv1{background:rgba(14,124,134,.18)} .hsq.lv2{background:rgba(14,124,134,.38)} .hsq.lv3{background:rgba(14,124,134,.62)} .hsq.lv4{background:rgba(14,124,134,.92)}
-  .hsq.sel{outline:2px solid var(--break);outline-offset:1px}
+  /* 年度视图：12 行 × 31 格「月度横条年历」，月份 1–12 不重名、不横滑 */
+  .yl{display:grid;grid-template-columns:34px minmax(0,1fr);column-gap:10px;row-gap:6px;align-items:center;max-width:600px;margin:0 auto}
+  .yl .mlbl{font-size:11px;color:var(--muted);text-align:right;white-space:nowrap}
+  .yl-row{display:grid;grid-template-columns:repeat(31,minmax(0,1fr));gap:3px}
+  .yq{height:13px;border-radius:2px;background:var(--panel-2);cursor:pointer;transition:.1s}
+  .yq:hover{outline:2px solid var(--accent);outline-offset:1px}
+  .yq.void{background:transparent;cursor:default;padding:0}   /* 不存在的日期：留空占位（勿用 .empty，会命中记录表空状态样式） */
+  .yq.lv1{background:rgba(14,124,134,.18)} .yq.lv2{background:rgba(14,124,134,.38)}
+  .yq.lv3{background:rgba(14,124,134,.62)} .yq.lv4{background:rgba(14,124,134,.92)}
+  .yq.today{box-shadow:inset 0 0 0 1.5px var(--accent)}
+  .yq.sel{outline:2px solid var(--break);outline-offset:1px}
+  .ysum{display:flex;flex-wrap:wrap;gap:4px 14px;font-size:12px;color:var(--muted);padding:0 0 12px;max-width:600px;margin:0 auto}
+  .ysum b{color:var(--text)}
+  .cal-body .cal-legend.center{max-width:600px;margin:0 auto;padding-left:0;padding-right:0}   /* 年度视图：图例与热力条同宽居中 */
+  @media(max-width:520px){
+    .yl{grid-template-columns:30px minmax(0,1fr);column-gap:8px;row-gap:5px}
+    .yl-row{gap:2px}
+    .yq{height:10px;border-radius:2px}   /* 手机上 7.5px 宽 → 压到 10px 高，接近方形而非竖条 */
+  }
   .wk-scroll{overflow-x:auto;-webkit-overflow-scrolling:touch}
   .wk{display:grid;grid-template-columns:46px repeat(7,1fr);gap:8px;min-width:676px}
   .wk-col{display:flex;flex-direction:column;align-items:stretch;gap:6px}
@@ -858,23 +869,26 @@
     $('yLbl').textContent=calYear+' 年';
     $('yPrev').onclick=()=>{ calYear--; renderCalendar(); };
     $('yNext').onclick=()=>{ calYear++; renderCalendar(); };
-    const jan1=new Date(calYear,0,1); const start=new Date(jan1); start.setDate(start.getDate()-jan1.getDay());
-    const weeks=53;
-    let months='<div class="heat-months" style="grid-template-columns:repeat('+weeks+',18px)">';
-    let lastMon=-1;
-    for(let w=0;w<weeks;w++){ const fd=new Date(start); fd.setDate(start.getDate()+w*7);
-      months+=(fd.getMonth()!==lastMon)?('<div>'+(fd.getMonth()+1)+'月</div>'):'<div></div>'; lastMon=fd.getMonth(); }
-    months+='</div>';
-    let squares='<div class="heat">';
-    for(let w=0;w<weeks;w++) for(let dow=0;dow<7;dow++){
-      const dt=new Date(start); dt.setDate(start.getDate()+w*7+dow);
-      if(dt.getFullYear()!==calYear){ squares+='<div class="hsq" style="visibility:hidden"></div>'; continue; }
-      const ds=fmtDate(dt), min=dayFocusMin(ds), lv=level(min);
-      squares+='<div class="hsq lv'+lv+(ds===selDay?' sel':'')+'" data-d="'+ds+'" title="'+ds+' · '+min+'′"></div>';
+    const todayS=todayStr();
+    let html='<div class="yl">', total=0, days=0, best=0;
+    for(let m=0;m<12;m++){
+      const dim=new Date(calYear,m+1,0).getDate();   // 当月天数，之外的格子留空
+      let mmin=0;
+      html+='<div class="mlbl">'+(m+1)+'月</div><div class="yl-row">';
+      for(let d=1;d<=31;d++){
+        if(d>dim){ html+='<div class="yq void"></div>'; continue; }
+        const ds=fmtDate(new Date(calYear,m,d)), min=dayFocusMin(ds), lv=level(min);
+        if(min>0){ mmin+=min; days++; }
+        html+='<div class="yq lv'+lv+(ds===todayS?' today':'')+(ds===selDay?' sel':'')+'" data-d="'+ds+'" title="'+ds+' · '+min+'′"></div>';
+      }
+      html+='</div>';
+      total+=mmin; if(mmin>best) best=mmin;
     }
-    squares+='</div>';
-    calBody.innerHTML='<div class="heat-scroll">'+months+squares+'</div>'+intensityLegend();
-    calBody.querySelectorAll('.hsq[data-d]').forEach(c=>c.onclick=()=>{ selDay=c.dataset.d; renderCalendar(); });
+    html+='</div>';
+    const sum='<div class="ysum">全年专注 <b>'+total+'′</b>（约 '+(total/60).toFixed(1)+' 小时）'+
+      '<span>有记录 '+days+' 天</span><span>单月最多 '+best+'′</span><span>日均 '+(days?Math.round(total/days):0)+'′</span></div>';
+    calBody.innerHTML=sum+html+intensityLegend().replace('class="cal-legend"','class="cal-legend center"');
+    calBody.querySelectorAll('.yq[data-d]').forEach(c=>c.onclick=()=>{ selDay=c.dataset.d; renderCalendar(); });
   }
   // 轨道高度从 CSS 变量 --wk-h 读取，保证「刻度/色块/轨道」三者用同一把尺
   function wkh(){
